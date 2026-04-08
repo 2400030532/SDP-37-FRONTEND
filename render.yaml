@@ -1,0 +1,11 @@
+services:
+  - type: static
+    name: sdp-37-frontend-1
+    runtime: static
+    plan: free
+    autoDeployTrigger: commit
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://sdp-37-backend-1.onrender.com/api/v1
