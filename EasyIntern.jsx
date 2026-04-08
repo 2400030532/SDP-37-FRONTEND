@@ -289,9 +289,9 @@ function HomePage({ setPage }) {
               <span style={{ color:"#3a3a4a" }}>Hunt</span>
             </h1> */}
             <h1 className="fade-up d2"style={{fontFamily: "system-ui, sans-serif", fontSize: "clamp(36px, 5vw, 64px)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-1.5px", marginBottom: 28}}>
-              Transform Your<br />
+              SDP-S5 PROJECT<br />
               <span style={{ color:C.text }}>Intern</span><span style={{ color:C.purple }}>ship</span>{" "}
-              <span style={{ color:"#3a3a4a" }}>Hunt</span>
+              <span style={{ color:"#3a3a4a" }}>Management</span>
             </h1>
 
             <p className="fade-up d3" style={{ fontSize:17, color:C.textSoft, lineHeight:1.75, maxWidth:480, marginBottom:44, fontWeight:300 }}>

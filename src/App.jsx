@@ -1,16 +1,16 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import API from "./Api";
 import { getInternships } from "./internshipService";
 
 /* ─── GLOBAL STYLES ─────────────────────────────────────────────────────── */
 const GlobalStyles = () => (
   <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
     body {
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Manrope', sans-serif;
       background: #0c0c0f;
       color: #e8e8ed;
       min-height: 100vh;
@@ -78,7 +78,8 @@ const GlobalStyles = () => (
 );
 
 /* ─── DESIGN TOKENS ─────────────────────────────────────────────────────── */
-const C = {
+// Dark mode colors (default)
+const colorsDark = {
   bg:        "#0c0c0f",
   surface:   "#111116",
   card:      "#18181f",
@@ -98,6 +99,31 @@ const C = {
   textMuted: "#6b6b80",
   textSoft:  "#9999b0",
 };
+
+// Light mode colors
+const colorsLight = {
+  bg:        "#ffffff",
+  surface:   "#f5f5f7",
+  card:      "#ffffff",
+  cardHover: "#f0f0f5",
+  border:    "#e5e5ec",
+  borderLight:"#d9d9e3",
+  purple:    "#8b5cf6",
+  purpleLight:"#a78bfa",
+  purpleDim: "rgba(139,92,246,0.08)",
+  green:     "#22c55e",
+  greenDim:  "rgba(34,197,94,0.08)",
+  yellow:    "#eab308",
+  yellowDim: "rgba(234,179,8,0.08)",
+  red:       "#ef4444",
+  blue:      "#3b82f6",
+  text:      "#000000",
+  textMuted: "#666666",
+  textSoft:  "#888888",
+};
+
+const getColors = (isDark = true) => isDark ? colorsDark : colorsLight;
+const C = colorsDark; // Default to dark
 
 /* ─── TINY UI ATOMS ─────────────────────────────────────────────────────── */
 const Badge = ({ children, color = C.purple }) => (
@@ -190,8 +216,10 @@ const ADMIN_INTERNS = [
 ];
 
 /* ─── NAV ───────────────────────────────────────────────────────────────── */
-function Navbar({ page, setPage, role, setRole, setPage2 }) {
+function Navbar({ page, setPage, role, setRole, setPage2, isDark, setIsDark }) {
   const [scrolled, setScrolled] = useState(false);
+  const C = getColors(isDark || true);
+  
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", fn);
@@ -202,7 +230,7 @@ function Navbar({ page, setPage, role, setRole, setPage2 }) {
     <nav style={{
       position: "fixed", top: 0, left: 0, right: 0, zIndex: 200,
       height: 64,
-      background: scrolled ? "rgba(12,12,15,0.92)" : "transparent",
+      background: scrolled ? `rgba(${isDark ? "12,12,15" : "255,255,255"},0.92)` : "transparent",
       backdropFilter: scrolled ? "blur(20px)" : "none",
       borderBottom: scrolled ? `1px solid ${C.border}` : "1px solid transparent",
       display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -216,9 +244,9 @@ function Navbar({ page, setPage, role, setRole, setPage2 }) {
           background:`linear-gradient(135deg, ${C.purple}, #6d28d9)`,
           display:"flex", alignItems:"center", justifyContent:"center",
           fontSize:16, fontWeight:800, color:"#fff",
-          fontFamily:"'Syne', sans-serif",
+          fontFamily:"'Manrope', sans-serif",
         }}>E</div>
-        <span style={{ fontFamily:"'Syne', sans-serif", fontWeight:700, fontSize:18, color:C.text }}>Easy<span style={{ color:C.purple }}>Intern</span></span>
+        <span style={{ fontFamily:"'Manrope', sans-serif", fontWeight:700, fontSize:18, color:C.text }}>Easy<span style={{ color:C.purple }}>Intern</span></span>
       </div>
 
       {/* Nav links */}
@@ -226,9 +254,9 @@ function Navbar({ page, setPage, role, setRole, setPage2 }) {
         {[
           { id:"home",        label:"Home" },
           { id:"internships", label:"Browse" },
-          ...(role === "student"  ? [{ id:"student",    label:"Dashboard" }] : []),
+          ...(role === "student"  ? [{ id:"student",    label:"Dashboard" }, { id:"profile", label:"Profile" }] : []),
           ...(role === "employer" ? [{ id:"employer",   label:"Portal" }] : []),
-          ...(role === "admin"    ? [{ id:"admin",      label:"Admin" }] : []),
+          ...(role === "admin"    ? [{ id:"admin",      label:"Admin" }, { id:"profile", label:"Profile" }] : []),
         ].map(({ id, label }) => (
           <button key={id} onClick={() => setPage(id)} style={{
             padding:"7px 16px", borderRadius:8, fontSize:13, fontWeight:500,
@@ -245,6 +273,9 @@ function Navbar({ page, setPage, role, setRole, setPage2 }) {
 
       {/* Right side */}
       <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+        <button onClick={() => setIsDark(!isDark)} style={{ padding:"8px 12px", borderRadius:8, fontSize:16, background:"transparent", color:C.textSoft, border:`1px solid ${C.border}`, transition:"all 0.2s", cursor:"pointer" }} title={isDark ? "Light Mode" : "Dark Mode"}>
+          {isDark ? "☀️" : "🌙"}
+        </button>
         {!role ? (
           <>
             <button onClick={() => setPage("login")} style={{ padding:"8px 18px", borderRadius:8, fontSize:13, fontWeight:500, background:"transparent", color:C.textSoft, border:`1px solid ${C.border}`, transition:"all 0.2s" }}>Log in</button>
@@ -255,7 +286,8 @@ function Navbar({ page, setPage, role, setRole, setPage2 }) {
             <div style={{ width:32, height:32, borderRadius:8, background:C.purpleDim, border:`1px solid ${C.purple}44`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:C.purple }}>
               {role[0].toUpperCase()}
             </div>
-            <button onClick={() => { setRole(null); setPage("home"); }} style={{ padding:"7px 14px", borderRadius:8, fontSize:12, fontWeight:500, background:"transparent", color:C.textMuted, border:`1px solid ${C.border}` }}>Logout</button>
+            <button onClick={() => setPage("settings")} style={{ padding:"7px 14px", borderRadius:8, fontSize:12, fontWeight:500, background:"transparent", color:C.textMuted, border:`1px solid ${C.border}` }}>⚙️ Settings</button>
+            <button onClick={() => { localStorage.removeItem("easyintern_token"); localStorage.removeItem("easyintern_user"); setRole(null); setPage("home"); }} style={{ padding:"7px 14px", borderRadius:8, fontSize:12, fontWeight:500, background:"transparent", color:C.textMuted, border:`1px solid ${C.border}` }}>Logout</button>
           </div>
         )}
       </div>
@@ -284,10 +316,10 @@ function HomePage({ setPage }) {
               <span style={{ fontSize:14 }}>✦</span> Your Internship Journey Starts Here
             </div>
 
-            <h1 className="fade-up d2" style={{ fontFamily:"'Syne', sans-serif", fontSize:"clamp(42px,5vw,72px)", fontWeight:800, lineHeight:1.05, letterSpacing:"-2px", marginBottom:28 }}>
-              Transform Your<br />
+            <h1 className="fade-up d2" style={{ fontFamily:"system-ui, sans-serif", fontSize:"clamp(36px, 5vw, 64px)", fontWeight:800, lineHeight:1.1, letterSpacing:"-1.5px", marginBottom:28 }}>
+              SDP-S5 PROJECT<br />
               <span style={{ color:C.text }}>Intern</span><span style={{ color:C.purple }}>ship</span>{" "}
-              <span style={{ color:"#3a3a4a" }}>Hunt</span>
+              <span style={{ color:"#3a3a4a" }}>Management</span>
             </h1>
 
             <p className="fade-up d3" style={{ fontSize:17, color:C.textSoft, lineHeight:1.75, maxWidth:480, marginBottom:44, fontWeight:300 }}>
@@ -344,7 +376,7 @@ function HomePage({ setPage }) {
             { n:"₹22K", l:"Average Stipend" },
           ].map(({ n, l }) => (
             <div key={l} style={{ textAlign:"center" }}>
-              <div style={{ fontFamily:"'Syne',sans-serif", fontSize:36, fontWeight:800, color:C.text, letterSpacing:"-1px" }}>{n}</div>
+              <div style={{ fontFamily:"'Manrope',sans-serif", fontSize:36, fontWeight:800, color:C.text, letterSpacing:"-1px" }}>{n}</div>
               <div style={{ fontSize:13, color:C.textMuted, marginTop:4 }}>{l}</div>
             </div>
           ))}
@@ -355,7 +387,7 @@ function HomePage({ setPage }) {
       <section style={{ padding:"100px 64px", maxWidth:1200, margin:"0 auto" }}>
         <div style={{ textAlign:"center", marginBottom:64 }}>
           <p style={{ fontSize:12, fontWeight:700, letterSpacing:"0.15em", color:C.purple, textTransform:"uppercase", marginBottom:12 }}>PLATFORM FEATURES</p>
-          <h2 style={{ fontFamily:"'Syne',sans-serif", fontSize:42, fontWeight:800, letterSpacing:"-1.5px" }}>Everything you need to<br/>land your dream internship</h2>
+          <h2 style={{ fontFamily:"'Manrope',sans-serif", fontSize:42, fontWeight:800, letterSpacing:"-1.5px" }}>Everything you need to<br/>land your dream internship</h2>
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))", gap:24 }}>
           {[
@@ -369,7 +401,7 @@ function HomePage({ setPage }) {
               onMouseLeave={e => e.currentTarget.style.borderColor=C.border}
             >
               <div style={{ fontSize:32, marginBottom:18 }}>{f.icon}</div>
-              <div style={{ fontFamily:"'Syne',sans-serif", fontSize:17, fontWeight:700, color:f.color, marginBottom:10 }}>{f.title}</div>
+              <div style={{ fontFamily:"'Manrope',sans-serif", fontSize:17, fontWeight:700, color:f.color, marginBottom:10 }}>{f.title}</div>
               <div style={{ fontSize:14, color:C.textMuted, lineHeight:1.7 }}>{f.desc}</div>
             </div>
           ))}
@@ -380,14 +412,14 @@ function HomePage({ setPage }) {
       <section style={{ margin:"0 64px 100px", borderRadius:24, background:`linear-gradient(135deg, #1a1028, #0c0c0f)`, border:`1px solid ${C.border}`, padding:"72px 64px", textAlign:"center", position:"relative", overflow:"hidden" }}>
         <div style={{ position:"absolute", top:"-40%", left:"50%", transform:"translateX(-50%)", width:600, height:400, borderRadius:"50%", background:"radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%)", pointerEvents:"none" }} />
         <p style={{ fontSize:12, fontWeight:700, letterSpacing:"0.15em", color:C.purple, textTransform:"uppercase", marginBottom:16 }}>GET STARTED TODAY</p>
-        <h2 style={{ fontFamily:"'Syne',sans-serif", fontSize:48, fontWeight:800, letterSpacing:"-2px", marginBottom:20 }}>Ready to find your<br/>perfect internship?</h2>
+        <h2 style={{ fontFamily:"'Manrope',sans-serif", fontSize:48, fontWeight:800, letterSpacing:"-2px", marginBottom:20 }}>Ready to find your<br/>perfect internship?</h2>
         <p style={{ fontSize:16, color:C.textSoft, marginBottom:40, maxWidth:480, margin:"0 auto 40px" }}>Join thousands of students who've already landed internships at top companies using Easy Intern.</p>
         <button onClick={() => setPage("signup")} style={{ padding:"14px 36px", borderRadius:10, fontSize:15, fontWeight:600, background:C.purple, color:"#fff", transition:"all 0.2s", animation:"glow 2s ease infinite" }}>Start for Free →</button>
       </section>
 
       {/* FOOTER */}
       <footer style={{ borderTop:`1px solid ${C.border}`, padding:"40px 64px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-        <span style={{ fontFamily:"'Syne',sans-serif", fontWeight:700, color:C.text }}>Easy<span style={{ color:C.purple }}>Intern</span></span>
+        <span style={{ fontFamily:"'Manrope',sans-serif", fontWeight:700, color:C.text }}>Easy<span style={{ color:C.purple }}>Intern</span></span>
         <span style={{ fontSize:13, color:C.textMuted }}>FSAD-PS37 · Remote Internship Management & Evaluation Platform</span>
         <span style={{ fontSize:13, color:C.textMuted }}>© 2026</span>
       </footer>
@@ -407,7 +439,7 @@ function DashboardPreviewCard() {
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:24 }}>
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
           <span style={{ fontSize:16 }}>📅</span>
-          <span style={{ fontFamily:"'Syne',sans-serif", fontWeight:700, fontSize:16 }}>Recent Applications</span>
+          <span style={{ fontFamily:"'Manrope',sans-serif", fontWeight:700, fontSize:16 }}>Recent Applications</span>
         </div>
         <span style={{ fontSize:12, color:C.textMuted, display:"flex", alignItems:"center", gap:6 }}>
           <span>🕐</span> Last 7 days
@@ -421,7 +453,7 @@ function DashboardPreviewCard() {
             <div style={{ padding:"16px 0" }}>
               <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                  <span style={{ fontFamily:"'Syne',sans-serif", fontWeight:700, fontSize:15 }}>{a.company}</span>
+                  <span style={{ fontFamily:"'Manrope',sans-serif", fontWeight:700, fontSize:15 }}>{a.company}</span>
                   {i === 0 && <Badge color={C.green}>New</Badge>}
                 </div>
                 <span style={{ fontSize:12, color:C.textMuted }}>{a.date}</span>
@@ -438,7 +470,7 @@ function DashboardPreviewCard() {
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:0, borderTop:`1px solid ${C.border}`, marginTop:8, paddingTop:20 }}>
         {[{ n:"12", l:"Applied" }, { n:"5", l:"In Progress" }, { n:"3", l:"Completed" }].map(({ n, l }, i) => (
           <div key={l} style={{ textAlign:"center", borderRight: i<2 ? `1px solid ${C.border}` : "none" }}>
-            <div style={{ fontFamily:"'Syne',sans-serif", fontSize:28, fontWeight:800, color:C.textSoft }}>{n}</div>
+            <div style={{ fontFamily:"'Manrope',sans-serif", fontSize:28, fontWeight:800, color:C.textSoft }}>{n}</div>
             <div style={{ fontSize:12, color:C.textMuted, marginTop:2 }}>{l}</div>
           </div>
         ))}
@@ -454,15 +486,22 @@ function AuthPage({ mode, setMode, onLogin }) {
   const [errors, setErrors] = useState({});
   const [authError, setAuthError] = useState("");
   const isSignup = mode === "signup";
+  const visibleRoles = isSignup ? ["student"] : ["student", "employer", "admin"];
+
+  useEffect(() => {
+    if (isSignup && role !== "student") {
+      setRole("student");
+    }
+  }, [isSignup, role]);
 
   const validate = () => {
     setAuthError("");
     const newErrors = {};
-    // Email validation
+    // Email/User ID validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!form.email) {
-      newErrors.email = "Email is required";
-    } else if (!emailRegex.test(form.email)) {
+      newErrors.email = isSignup ? "Email is required" : "User ID or email is required";
+    } else if (isSignup && !emailRegex.test(form.email)) {
       newErrors.email = "Please enter a valid email address";
     }
     // Password validation
@@ -496,7 +535,8 @@ function AuthPage({ mode, setMode, onLogin }) {
     }
 
     try {
-      const payload = {
+      // Build payload based on signup vs login
+      const payload = isSignup ? {
         fullName: form.name,
         pen: form.pen,
         phone: form.phone,
@@ -504,16 +544,35 @@ function AuthPage({ mode, setMode, onLogin }) {
         password: form.password,
         location: form.location,
         role,
+      } : {
+        loginId: form.email.trim(),
+        password: form.password,
+        role,
       };
 
       const endpoint = isSignup ? "/auth/signup" : "/auth/login";
       const response = await API.post(endpoint, payload);
       const userData = response.data;
       setAuthError("");
-      onLogin({ id: userData.id, fullName: userData.fullName, email: userData.email, role: userData.role });
+      onLogin({ id: userData.id, fullName: userData.fullName, email: userData.email, role: userData.role, token: userData.token });
     } catch (error) {
+      const status = error?.response?.status;
       const message = error?.response?.data?.message || error?.message || "Authentication failed";
-      setAuthError(message);
+      
+      // Display specific error messages
+      if (status === 409 || message.includes("already")) {
+        setAuthError(`❌ ${message}`);
+      } else if (status === 401 || message.includes("Invalid user ID/email or password")) {
+        setAuthError("❌ Invalid user ID/email or password.");
+      } else if (status === 401 || message.includes("Incorrect password")) {
+        setAuthError("❌ Incorrect password.");
+      } else if (status === 404 || message.includes("not found")) {
+        setAuthError("❌ User not found. Please check your email or sign up.");
+      } else if (status === 400) {
+        setAuthError(`❌ ${message}`);
+      } else {
+        setAuthError(`❌ ${message}`);
+      }
     }
   };
 
@@ -523,18 +582,23 @@ function AuthPage({ mode, setMode, onLogin }) {
 
       <div className="fade-up" style={{ width:"100%", maxWidth:440 }}>
         <div style={{ textAlign:"center", marginBottom:36 }}>
-          <h1 style={{ fontFamily:"'Syne',sans-serif", fontSize:32, fontWeight:800, marginBottom:8 }}>
+          <h1 style={{ fontFamily:"'Manrope',sans-serif", fontSize:32, fontWeight:800, marginBottom:8 }}>
             {isSignup ? "Create your account" : "Welcome back"}
           </h1>
           <p style={{ color:C.textMuted, fontSize:14 }}>
             {isSignup ? "Start your internship journey today" : "Sign in to continue your journey"}
           </p>
+          {isSignup && (
+            <p style={{ color:C.textMuted, fontSize:12, marginTop:8 }}>
+              Employer accounts are created by admin only.
+            </p>
+          )}
         </div>
 
         <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:20, padding:36 }}>
           {/* Role tabs */}
           <div style={{ display:"flex", background:C.surface, borderRadius:10, padding:4, marginBottom:28, gap:4 }}>
-            {["student","employer","admin"].map(r => (
+            {visibleRoles.map(r => (
               <button key={r} onClick={() => setRole(r)} style={{
                 flex:1, padding:"9px 0", borderRadius:8, fontSize:13, fontWeight:600,
                 background: role===r ? C.card : "transparent",
@@ -555,7 +619,7 @@ function AuthPage({ mode, setMode, onLogin }) {
                 <Field label="Phone Number"    id="phone" type="tel"      value={form.phone}    onChange={v=>setForm({...form,phone:v})}    placeholder="+91 98765 43210" />
               </>
             )}
-            <Field label="Email"               id="email"    type="email"    value={form.email}    onChange={v=>setForm({...form,email:v})}    placeholder="you@example.com" error={errors.email} />
+            <Field label={isSignup ? "Email" : "User ID or Email"}               id="email"    type="text"    value={form.email}    onChange={v=>setForm({...form,email:v})}    placeholder={isSignup ? "you@example.com" : "e.g. 27 or you@example.com"} error={errors.email} />
             <Field label="Password"            id="password" type="password" value={form.password} onChange={v=>setForm({...form,password:v})} placeholder="••••••••" error={errors.password} />
             {isSignup && (
               <Field label="Location"          id="location" type="text"    value={form.location} onChange={v=>setForm({...form,location:v})} placeholder="Hyderabad, India" />
@@ -572,10 +636,23 @@ function AuthPage({ mode, setMode, onLogin }) {
           </div>
 
           <p style={{ textAlign:"center", marginTop:20, fontSize:13, color:C.textMuted }}>
-            {isSignup?"Already have an account?":"Don't have an account?"}{" "}
-            <span style={{ color:C.purple, cursor:"pointer", fontWeight:600 }} onClick={() => setMode(isSignup?"login":"signup")}>
-              {isSignup?"Log in":"Sign up"}
-            </span>
+            {isSignup ? (
+              <>
+                Already have an account?{" "}
+                <span style={{ color:C.purple, cursor:"pointer", fontWeight:600 }} onClick={() => setMode("login")}>
+                  Log in
+                </span>
+              </>
+            ) : role === "admin" ? (
+              <span>Admin accounts are login only.</span>
+            ) : (
+              <>
+                Don't have an account?{" "}
+                <span style={{ color:C.purple, cursor:"pointer", fontWeight:600 }} onClick={() => setMode("signup")}>
+                  Sign up
+                </span>
+              </>
+            )}
           </p>
         </div>
       </div>
@@ -629,26 +706,29 @@ function InternshipsPage({ onApply, role }) {
   const [detail, setDetail]   = useState(null);
   const [internships, setInternships] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
+  const fetchInternships = async () => {
+    setLoading(true);
+    setLoadError("");
+    try {
+      const response = await getInternships();
+      setInternships(response.data || []);
+    } catch {
+      setInternships([]);
+      setLoadError("Could not load internships. Please make sure backend is running and try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchInternships = async () => {
-      try {
-        const response = await getInternships();
-        setInternships(response.data);
-      } catch (error) {
-        console.error("Failed to fetch internships:", error);
-        // Fallback to mock data if API fails
-        setInternships(INTERNSHIPS);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchInternships();
   }, []);
 
   const filtered = internships.filter(i =>
     (filter==="All" || i.location===filter) &&
-    (i.title.toLowerCase().includes(search.toLowerCase()) || i.company.toLowerCase().includes(search.toLowerCase()))
+    ((i.title || "").toLowerCase().includes(search.toLowerCase()) || (i.company || "").toLowerCase().includes(search.toLowerCase()))
   );
 
   if (detail) return <InternshipDetail item={detail} onBack={() => setDetail(null)} onApply={() => { onApply(detail); setDetail(null); }} role={role} />;
@@ -661,12 +741,23 @@ function InternshipsPage({ onApply, role }) {
     );
   }
 
+  if (loadError) {
+    return (
+      <div style={{ maxWidth:1200, margin:"0 auto", padding:"100px 48px 60px", textAlign:"center" }}>
+        <div style={{ fontSize:18, color:C.red, marginBottom:14 }}>{loadError}</div>
+        <button onClick={fetchInternships} style={{ padding:"10px 16px", borderRadius:8, background:C.purple, color:"#fff", fontWeight:700 }}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div style={{ maxWidth:1200, margin:"0 auto", padding:"100px 48px 60px" }}>
       {/* Header */}
       <div className="fade-up" style={{ marginBottom:48 }}>
         <p style={{ fontSize:12, fontWeight:700, letterSpacing:"0.15em", color:C.purple, textTransform:"uppercase", marginBottom:10 }}>OPPORTUNITIES</p>
-        <h1 style={{ fontFamily:"'Syne',sans-serif", fontSize:48, fontWeight:800, letterSpacing:"-2px", marginBottom:16 }}>Browse Internships</h1>
+        <h1 style={{ fontFamily:"'Manrope',sans-serif", fontSize:48, fontWeight:800, letterSpacing:"-2px", marginBottom:16 }}>Browse Internships</h1>
         <p style={{ color:C.textMuted, fontSize:16 }}>Discover top internship opportunities at leading companies</p>
       </div>
 
@@ -700,9 +791,9 @@ function InternshipsPage({ onApply, role }) {
             {/* Top row */}
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:18 }}>
               <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                <div style={{ width:44, height:44, borderRadius:10, background:item.color+"22", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, fontWeight:800, color:item.color, fontFamily:"'Syne',sans-serif" }}>{item.logo}</div>
+                <div style={{ width:44, height:44, borderRadius:10, background:item.color+"22", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, fontWeight:800, color:item.color, fontFamily:"'Manrope',sans-serif" }}>{item.logo}</div>
                 <div>
-                  <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:700, fontSize:15 }}>{item.company}</div>
+                  <div style={{ fontFamily:"'Manrope',sans-serif", fontWeight:700, fontSize:15 }}>{item.company}</div>
                   <div style={{ fontSize:12, color:C.textMuted }}>{item.posted}</div>
                 </div>
               </div>
@@ -713,11 +804,13 @@ function InternshipsPage({ onApply, role }) {
 
            {/* Skills */}
 <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:18 }}>
-  {(typeof item.skills === "string"
-    ? item.skills.split(",")
-    : []
+  {(Array.isArray(item.skills)
+    ? item.skills
+    : typeof item.skills === "string"
+      ? item.skills.split(",")
+      : []
   ).map((s, i) => (
-    <Badge key={i} color={C.textMuted}>{s}</Badge>
+    <Badge key={i} color={C.textMuted}>{String(s).trim()}</Badge>
   ))}
 </div>
             {/* Footer */}
@@ -740,14 +833,14 @@ function InternshipDetail({ item, onBack, onApply, role }) {
       <div className="fade-up" style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:20, padding:40 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:32, flexWrap:"wrap", gap:16 }}>
           <div style={{ display:"flex", alignItems:"center", gap:20 }}>
-            <div style={{ width:64, height:64, borderRadius:14, background:item.color+"22", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28, fontWeight:800, color:item.color, fontFamily:"'Syne',sans-serif" }}>{item.logo}</div>
+            <div style={{ width:64, height:64, borderRadius:14, background:item.color+"22", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28, fontWeight:800, color:item.color, fontFamily:"'Manrope',sans-serif" }}>{item.logo}</div>
             <div>
-              <h1 style={{ fontFamily:"'Syne',sans-serif", fontSize:24, fontWeight:800, marginBottom:4 }}>{item.title}</h1>
+              <h1 style={{ fontFamily:"'Manrope',sans-serif", fontSize:24, fontWeight:800, marginBottom:4 }}>{item.title}</h1>
               <div style={{ fontSize:14, color:C.textMuted }}>{item.company} · {item.location}</div>
             </div>
           </div>
           <div>
-            <div style={{ fontSize:22, fontWeight:800, color:C.green, fontFamily:"'Syne',sans-serif" }}>{item.stipend}</div>
+            <div style={{ fontSize:22, fontWeight:800, color:C.green, fontFamily:"'Manrope',sans-serif" }}>{item.stipend}</div>
             <div style={{ fontSize:12, color:C.textMuted, textAlign:"right" }}>per month</div>
           </div>
         </div>
@@ -764,7 +857,7 @@ function InternshipDetail({ item, onBack, onApply, role }) {
         <div style={{ marginBottom:28 }}>
           <div style={{ fontWeight:700, marginBottom:12 }}>Required Skills</div>
           <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-            {item.skills.map(s=><Badge key={s} color={C.purple}>{s}</Badge>)}
+            {(Array.isArray(item.skills) ? item.skills : []).map(s=><Badge key={s} color={C.purple}>{s}</Badge>)}
           </div>
         </div>
 
@@ -785,139 +878,123 @@ function InternshipDetail({ item, onBack, onApply, role }) {
 }
 
 /* ─── STUDENT DASHBOARD ─────────────────────────────────────────────────── */
-function StudentDashboard() {
-  const [active, setActive] = useState(MY_APPS[0]);
-  const [tab,    setTab]    = useState("overview");
+function StudentDashboard({ onToast }) {
+  const [applications, setApplications] = useState([]);
+  const [active, setActive] = useState(null);
+  const [tab, setTab] = useState("overview");
+  const [loading, setLoading] = useState(true);
+
+  const loadApplications = async () => {
+    try {
+      const res = await API.get("/applications/me");
+      const items = res.data || [];
+      setApplications(items);
+      setActive(items[0] || null);
+    } catch {
+      setApplications([]);
+      setActive(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadApplications();
+  }, []);
+
+  const completeTask = async (taskId) => {
+    await API.put(`/applications/tasks/${taskId}/complete`);
+    onToast("Task marked complete");
+    await loadApplications();
+  };
+
+  const stats = {
+    applications: applications.length,
+    shortlisted: applications.filter((a) => a.resumeRound === "ALLOWED").length,
+    interviews: applications.filter((a) => a.technicalRound === "ALLOWED").length,
+    completed: applications.filter((a) => a.hrRound === "ALLOWED").length,
+  };
+
+  if (loading) {
+    return <div style={{ maxWidth:1200, margin:"0 auto", padding:"100px 48px 60px", color:C.textMuted }}>Loading dashboard...</div>;
+  }
 
   return (
     <div style={{ maxWidth:1200, margin:"0 auto", padding:"100px 48px 60px" }}>
       <div className="fade-up" style={{ marginBottom:40 }}>
         <p style={{ fontSize:12, fontWeight:700, letterSpacing:"0.15em", color:C.purple, textTransform:"uppercase", marginBottom:10 }}>STUDENT PORTAL</p>
-        <h1 style={{ fontFamily:"'Syne',sans-serif", fontSize:40, fontWeight:800, letterSpacing:"-1.5px" }}>My Dashboard</h1>
+        <h1 style={{ fontFamily:"'Manrope',sans-serif", fontSize:40, fontWeight:800, letterSpacing:"-1.5px" }}>My Dashboard</h1>
       </div>
 
-      {/* Stats */}
       <div className="fade-up d2" style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16, marginBottom:40 }}>
         {[
-          { label:"Applications", value:"3",    icon:"📤", color:C.purple },
-          { label:"Shortlisted",  value:"1",    icon:"⭐", color:C.yellow },
-          { label:"Interviews",   value:"1",    icon:"🎯", color:C.blue },
-          { label:"Completed",    value:"1",    icon:"✅", color:C.green },
-        ].map(s=>(
+          { label:"Applications", value:String(stats.applications), icon:"📤", color:C.purple },
+          { label:"Resume Allowed", value:String(stats.shortlisted), icon:"📄", color:C.yellow },
+          { label:"Technical Allowed", value:String(stats.interviews), icon:"💻", color:C.blue },
+          { label:"HR Allowed", value:String(stats.completed), icon:"✅", color:C.green },
+        ].map((s) => (
           <div key={s.label} style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:"20px 24px", display:"flex", alignItems:"center", gap:16 }}>
             <div style={{ width:44, height:44, borderRadius:10, background:s.color+"22", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20 }}>{s.icon}</div>
             <div>
-              <div style={{ fontFamily:"'Syne',sans-serif", fontSize:28, fontWeight:800, color:s.color }}>{s.value}</div>
+              <div style={{ fontFamily:"'Manrope',sans-serif", fontSize:28, fontWeight:800, color:s.color }}>{s.value}</div>
               <div style={{ fontSize:12, color:C.textMuted }}>{s.label}</div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Body */}
       <div className="fade-up d3" style={{ display:"grid", gridTemplateColumns:"300px 1fr", gap:24 }}>
-        {/* Sidebar */}
         <div>
           <div style={{ fontSize:11, fontWeight:700, color:C.textMuted, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>My Applications</div>
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-            {MY_APPS.map(app=>(
-              <div key={app.id} onClick={() => { setActive(app); setTab("overview"); }} style={{
-                background:C.card, border:`1px solid ${active?.id===app.id ? C.purple : C.border}`,
-                borderRadius:14, padding:"16px 18px", cursor:"pointer", transition:"all 0.2s",
-              }}>
-                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
-                  <div style={{ width:34, height:34, borderRadius:8, background:app.color+"22", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, color:app.color, fontSize:14, fontFamily:"'Syne',sans-serif" }}>{app.company[0]}</div>
-                  <div>
-                    <div style={{ fontWeight:700, fontSize:14 }}>{app.company}</div>
-                    <div style={{ fontSize:11, color:C.textMuted }}>{app.role.split(" ").slice(0,2).join(" ")}…</div>
-                  </div>
-                </div>
+            {applications.map((app) => (
+              <div key={app.id} onClick={() => { setActive(app); setTab("overview"); }} style={{ background:C.card, border:`1px solid ${active?.id===app.id ? C.purple : C.border}`, borderRadius:14, padding:"16px 18px", cursor:"pointer", transition:"all 0.2s" }}>
+                <div style={{ fontWeight:700, fontSize:14 }}>{app.company}</div>
+                <div style={{ fontSize:12, color:C.textMuted, marginBottom:8 }}>{app.internshipTitle}</div>
                 <StatusDot status={app.status} />
                 <div style={{ marginTop:10 }}>
-                  <ProgressBar value={app.progress} color={app.color} thin />
-                  <div style={{ fontSize:11, color:C.textMuted, marginTop:4 }}>{app.progress}%</div>
+                  <ProgressBar value={app.progress || 0} color={C.purple} thin />
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Detail */}
         {active && (
           <div>
             <div style={{ display:"flex", gap:6, marginBottom:24 }}>
-              {["overview","tasks","feedback"].map(t=>(
-                <button key={t} onClick={()=>setTab(t)} style={{
-                  padding:"8px 18px", borderRadius:99, fontSize:13, fontWeight:500, textTransform:"capitalize",
-                  background: tab===t ? C.purpleDim : "transparent",
-                  color:      tab===t ? C.purpleLight : C.textMuted,
-                  border:     tab===t ? `1px solid ${C.purple}44` : `1px solid ${C.border}`,
-                  transition:"all 0.2s",
-                }}>{t}</button>
+              {["overview","tasks"].map((t) => (
+                <button key={t} onClick={() => setTab(t)} style={{ padding:"8px 18px", borderRadius:99, fontSize:13, fontWeight:500, textTransform:"capitalize", background: tab===t ? C.purpleDim : "transparent", color: tab===t ? C.purpleLight : C.textMuted, border: tab===t ? `1px solid ${C.purple}44` : `1px solid ${C.border}` }}>{t}</button>
               ))}
             </div>
 
-            {tab==="overview" && (
+            {tab === "overview" && (
               <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:20, padding:32 }}>
-                <div style={{ fontFamily:"'Syne',sans-serif", fontSize:22, fontWeight:800, marginBottom:4 }}>{active.role}</div>
-                <div style={{ color:C.textMuted, fontSize:14, marginBottom:28 }}>{active.company} · Applied {active.applied}</div>
-                <div style={{ marginBottom:28 }}>
-                  <div style={{ display:"flex", justifyContent:"space-between", marginBottom:10 }}>
-                    <span style={{ fontSize:14, fontWeight:600 }}>Overall Progress</span>
-                    <span style={{ fontSize:14, fontWeight:700, color:active.color }}>{active.progress}%</span>
-                  </div>
-                  <ProgressBar value={active.progress} color={active.color} />
+                <div style={{ fontFamily:"'Manrope',sans-serif", fontSize:22, fontWeight:800, marginBottom:4 }}>{active.internshipTitle}</div>
+                <div style={{ color:C.textMuted, fontSize:14, marginBottom:20 }}>{active.company}</div>
+                <div style={{ marginBottom:20 }}>
+                  <div style={{ marginBottom:8, fontSize:13 }}>Resume: <Badge color={active.resumeRound === "ALLOWED" ? C.green : active.resumeRound === "REJECTED" ? C.red : C.yellow}>{active.resumeRound}</Badge></div>
+                  <div style={{ marginBottom:8, fontSize:13 }}>Technical: <Badge color={active.technicalRound === "ALLOWED" ? C.green : active.technicalRound === "REJECTED" ? C.red : C.yellow}>{active.technicalRound}</Badge></div>
+                  <div style={{ marginBottom:8, fontSize:13 }}>HR: <Badge color={active.hrRound === "ALLOWED" ? C.green : active.hrRound === "REJECTED" ? C.red : C.yellow}>{active.hrRound}</Badge></div>
                 </div>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16 }}>
-                  {[
-                    ["Status", <StatusDot status={active.status} />],
-                    ["Tasks",  `${active.tasks.filter(t=>t.done).length}/${active.tasks.length} done`],
-                    ["Feedback", `${active.feedback.length} message${active.feedback.length!==1?"s":""}`],
-                  ].map(([l,v])=>(
-                    <div key={l} style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:12, padding:"14px 18px" }}>
-                      <div style={{ fontSize:11, color:C.textMuted, marginBottom:6, textTransform:"uppercase", letterSpacing:"0.05em" }}>{l}</div>
-                      <div style={{ fontWeight:600, fontSize:14 }}>{v}</div>
-                    </div>
-                  ))}
-                </div>
+                {active.resumeUrl && <a href={`http://localhost:8080${active.resumeUrl}`} target="_blank" rel="noreferrer" style={{ color:C.purple }}>View Uploaded Resume</a>}
               </div>
             )}
 
-            {tab==="tasks" && (
+            {tab === "tasks" && (
               <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:20, padding:32 }}>
-                <div style={{ fontFamily:"'Syne',sans-serif", fontSize:18, fontWeight:700, marginBottom:24 }}>Task Tracker</div>
+                <div style={{ fontFamily:"'Manrope',sans-serif", fontSize:18, fontWeight:700, marginBottom:24 }}>Assigned Tasks</div>
                 <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-                  {active.tasks.map(task=>(
-                    <div key={task.id} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 20px", background:C.surface, borderRadius:12, border:`1px solid ${task.done?C.green+"33":C.border}` }}>
-                      <div style={{ width:26, height:26, borderRadius:7, background:task.done?C.green+"22":C.surface, border:`1.5px solid ${task.done?C.green:C.borderLight}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, color:task.done?C.green:C.textMuted, flexShrink:0 }}>{task.done?"✓":"○"}</div>
+                  {(active.tasks || []).map((task) => (
+                    <div key={task.id} style={{ display:"flex", alignItems:"center", gap:12, padding:"14px 16px", border:`1px solid ${C.border}`, borderRadius:12, background:C.surface }}>
                       <div style={{ flex:1 }}>
-                        <div style={{ fontSize:14, fontWeight:600, textDecoration:task.done?"line-through":"none", color:task.done?C.textMuted:C.text }}>{task.title}</div>
-                        <div style={{ fontSize:12, color:C.textMuted, marginTop:2 }}>Due: {task.due}</div>
+                        <div style={{ fontSize:14, fontWeight:600, textDecoration:task.completed ? "line-through" : "none" }}>{task.title}</div>
+                        <div style={{ fontSize:11, color:C.textMuted }}>Due: {task.dueDate || "Not set"}</div>
                       </div>
-                      <Badge color={task.done?C.green:C.yellow}>{task.done?"Done":"Pending"}</Badge>
+                      {!task.completed && <button onClick={() => completeTask(task.id)} style={{ padding:"7px 12px", borderRadius:8, background:C.green, color:"#fff", fontSize:12, fontWeight:700 }}>Complete</button>}
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {tab==="feedback" && (
-              <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:20, padding:32 }}>
-                <div style={{ fontFamily:"'Syne',sans-serif", fontSize:18, fontWeight:700, marginBottom:24 }}>Mentor Feedback</div>
-                {active.feedback.length===0 ? (
-                  <div style={{ textAlign:"center", padding:"60px 0", color:C.textMuted }}>
-                    <div style={{ fontSize:40, marginBottom:12 }}>💬</div>
-                    No feedback yet. Keep up the great work!
-                  </div>
-                ) : active.feedback.map((f,i)=>(
-                  <div key={i} style={{ padding:"20px 24px", background:C.surface, borderRadius:14, borderLeft:`3px solid ${C.purple}`, marginBottom:14 }}>
-                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:10 }}>
-                      <span style={{ fontWeight:700, color:C.purple }}>{f.from}</span>
-                      <span style={{ fontSize:12, color:C.textMuted }}>{f.date}</span>
-                    </div>
-                    <div style={{ fontSize:14, color:C.textSoft, lineHeight:1.7 }}>{f.msg}</div>
-                  </div>
-                ))}
               </div>
             )}
           </div>
@@ -928,141 +1005,487 @@ function StudentDashboard() {
 }
 
 /* ─── EMPLOYER / ADMIN PORTAL ────────────────────────────────────────────── */
-function EmployerPortal() {
-  const [tab,     setTab]     = useState("interns");
-  const [showPost,setShowPost]= useState(false);
-  const [form,    setForm]    = useState({ title:"",company:"",stipend:"",duration:"",skills:"",location:"Remote" });
-  const [posted,  setPosted]  = useState(false);
+function EmployerPortal({ roleType = "employer", onToast }) {
+  const [tab, setTab] = useState("interns");
+  const [showPost, setShowPost] = useState(false);
+  const [form, setForm] = useState({ title:"", company:"", stipend:"", duration:"", skills:"", location:"Remote" });
+  const [apps, setApps] = useState([]);
+  const [selectedApp, setSelectedApp] = useState(null);
+  const [rounds, setRounds] = useState({ resumeRound: "PENDING", technicalRound: "PENDING", hrRound: "PENDING" });
+  const [taskTitle, setTaskTitle] = useState("");
+  const [creatingEmployer, setCreatingEmployer] = useState(false);
+  const [employerForm, setEmployerForm] = useState({ fullName:"", phone:"", email:"", password:"", location:"" });
 
-  const handlePost = () => { setPosted(true); setShowPost(false); setTimeout(()=>setPosted(false),3000); };
+  const tabs = roleType === "admin"
+    ? ["interns", "resume", "rounds", "evaluations", "employers"]
+    : ["interns", "resume"];
+
+  const loadApps = async () => {
+    try {
+      const endpoint = roleType === "admin" ? "/admin/applications" : "/employer/applications";
+      const res = await API.get(endpoint);
+      setApps(res.data || []);
+      if (!selectedApp && (res.data || []).length > 0) {
+        setSelectedApp(res.data[0]);
+      }
+    } catch {
+      setApps([]);
+    }
+  };
+
+  useEffect(() => {
+    loadApps();
+  }, [roleType]);
+
+  const evaluateResume = async (applicationId, decision) => {
+    try {
+      await API.put(`/employer/applications/${applicationId}/resume-decision`, { resumeRound: decision });
+      onToast(decision === "ALLOWED" ? "Candidate moved to next round" : "Candidate rejected at resume round");
+      await loadApps();
+    } catch (err) {
+      const message = err?.response?.data?.message || "Could not update resume decision";
+      onToast(message, C.red);
+    }
+  };
+
+  const createEmployer = async () => {
+    if (!employerForm.fullName || !employerForm.email || !employerForm.password) {
+      onToast("Full name, email and password are required", C.yellow);
+      return;
+    }
+    setCreatingEmployer(true);
+    try {
+      await API.post("/admin/users/employer", employerForm);
+      setEmployerForm({ fullName:"", phone:"", email:"", password:"", location:"" });
+      onToast("Employer account created by admin");
+    } catch (err) {
+      const message = err?.response?.data?.message || "Could not create employer account";
+      onToast(message, C.red);
+    } finally {
+      setCreatingEmployer(false);
+    }
+  };
+
+  const handlePost = async () => {
+    await API.post("/internships", {
+      ...form,
+      duration: Number(form.duration || 0),
+      skills: form.skills.split(",").map((s) => s.trim()).filter(Boolean),
+      active: true,
+    });
+    setShowPost(false);
+    onToast("Internship posted successfully");
+  };
+
+  const updateRounds = async () => {
+    if (!selectedApp) return;
+    const res = await API.put(`/admin/applications/${selectedApp.id}/rounds`, rounds);
+    setSelectedApp(res.data);
+    onToast("Round status updated and email triggered");
+    await loadApps();
+  };
+
+  const assignTask = async () => {
+    if (!selectedApp || !taskTitle.trim()) return;
+    await API.post(`/admin/applications/${selectedApp.id}/tasks`, { title: taskTitle });
+    setTaskTitle("");
+    onToast("Task assigned and email triggered");
+    await loadApps();
+  };
 
   return (
     <div style={{ maxWidth:1200, margin:"0 auto", padding:"100px 48px 60px" }}>
       <div className="fade-up" style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:40, flexWrap:"wrap", gap:16 }}>
         <div>
           <p style={{ fontSize:12, fontWeight:700, letterSpacing:"0.15em", color:C.purple, textTransform:"uppercase", marginBottom:10 }}>ADMIN PORTAL</p>
-          <h1 style={{ fontFamily:"'Syne',sans-serif", fontSize:40, fontWeight:800, letterSpacing:"-1.5px" }}>Employer Dashboard</h1>
+          <h1 style={{ fontFamily:"'Manrope',sans-serif", fontSize:40, fontWeight:800, letterSpacing:"-1.5px" }}>{roleType === "admin" ? "Admin Dashboard" : "Employer Dashboard"}</h1>
         </div>
-        <button onClick={()=>setShowPost(true)} style={{ padding:"12px 24px", borderRadius:10, fontSize:14, fontWeight:600, background:C.purple, color:"#fff", display:"inline-flex", alignItems:"center", gap:8 }}>+ Post Internship</button>
+        <button onClick={() => setShowPost(true)} style={{ padding:"12px 24px", borderRadius:10, fontSize:14, fontWeight:600, background:C.purple, color:"#fff" }}>+ Post Internship</button>
       </div>
 
-      {/* Toast */}
-      {posted && (
-        <div style={{ background:C.green, color:"#fff", padding:"14px 24px", borderRadius:12, fontWeight:600, marginBottom:24, animation:"fadeUp 0.3s ease" }}>
-          ✓ Internship posted successfully!
-        </div>
-      )}
-
-      {/* Post form */}
       {showPost && (
-        <div className="fade-up" style={{ background:C.card, border:`1px solid ${C.purple}55`, borderRadius:20, padding:36, marginBottom:32 }}>
-          <div style={{ fontFamily:"'Syne',sans-serif", fontSize:20, fontWeight:700, marginBottom:24 }}>Post New Internship</div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20, marginBottom:24 }}>
-            {[["title","Job Title","e.g. Frontend Intern"],["company","Company","e.g. TechCorp"],["stipend","Stipend","e.g. ₹25,000/mo"],["duration","Duration","e.g. 3 months"],["skills","Skills (comma separated)","React, TypeScript"],["location","Location","Remote / Hybrid"]].map(([k,l,p])=>(
-              <div key={k}>
-                <label style={{ display:"block", fontSize:12, fontWeight:600, color:C.textMuted, marginBottom:6, letterSpacing:"0.04em", textTransform:"uppercase" }}>{l}</label>
-                <input value={form[k]} onChange={e=>setForm({...form,[k]:e.target.value})} placeholder={p}
-                  style={{ width:"100%", padding:"11px 14px", borderRadius:9, background:C.surface, border:`1px solid ${C.border}`, color:C.text, fontSize:14 }}
-                />
-              </div>
+        <div className="fade-up" style={{ background:C.card, border:`1px solid ${C.purple}55`, borderRadius:20, padding:24, marginBottom:24 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+            {[["title","Title"],["company","Company"],["stipend","Stipend"],["duration","Duration in months"],["skills","Skills comma separated"],["location","Location"]].map(([k,l]) => (
+              <input key={k} value={form[k]} onChange={(e) => setForm({ ...form, [k]: e.target.value })} placeholder={l} style={{ width:"100%", padding:"11px 14px", borderRadius:9, background:C.surface, border:`1px solid ${C.border}`, color:C.text, fontSize:14 }} />
             ))}
           </div>
-          <div style={{ display:"flex", gap:12 }}>
-            <button onClick={handlePost} style={{ padding:"12px 28px", borderRadius:10, fontSize:14, fontWeight:600, background:C.purple, color:"#fff" }}>Post Internship</button>
-            <button onClick={()=>setShowPost(false)} style={{ padding:"12px 28px", borderRadius:10, fontSize:14, fontWeight:500, background:"transparent", color:C.textMuted, border:`1px solid ${C.border}` }}>Cancel</button>
+          <div style={{ marginTop:12, display:"flex", gap:8 }}>
+            <button onClick={handlePost} style={{ padding:"10px 16px", borderRadius:8, background:C.green, color:"#fff", fontWeight:700 }}>Post</button>
+            <button onClick={() => setShowPost(false)} style={{ padding:"10px 16px", borderRadius:8, background:C.surface, color:C.text, border:`1px solid ${C.border}` }}>Cancel</button>
           </div>
         </div>
       )}
 
-      {/* Stats */}
-      <div className="fade-up d2" style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16, marginBottom:40 }}>
-        {[
-          { label:"Active Interns",       value:"4",   icon:"👥", color:C.purple },
-          { label:"Internships Posted",   value:"6",   icon:"📋", color:C.blue },
-          { label:"Avg. Progress",        value:"54%", icon:"📈", color:C.green },
-          { label:"Evaluations Pending",  value:"3",   icon:"📝", color:C.yellow },
-        ].map(s=>(
-          <div key={s.label} style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:"20px 24px", display:"flex", alignItems:"center", gap:16 }}>
-            <div style={{ width:44, height:44, borderRadius:10, background:s.color+"22", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20 }}>{s.icon}</div>
-            <div>
-              <div style={{ fontFamily:"'Syne',sans-serif", fontSize:26, fontWeight:800, color:s.color }}>{s.value}</div>
-              <div style={{ fontSize:12, color:C.textMuted }}>{s.label}</div>
-            </div>
-          </div>
+      <div style={{ display:"flex", gap:6, marginBottom:24 }}>
+        {tabs.map((t) => (
+          <button key={t} onClick={() => setTab(t)} style={{ padding:"9px 20px", borderRadius:99, fontSize:13, fontWeight:500, textTransform:"capitalize", background: tab===t ? C.purpleDim : "transparent", color: tab===t ? C.purpleLight : C.textMuted, border: tab===t ? `1px solid ${C.purple}44` : `1px solid ${C.border}` }}>{t}</button>
         ))}
+      </div>
+
+      {tab === "interns" && (
+        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:16, padding:18 }}>
+          {apps.length === 0 ? <div style={{ color:C.textMuted }}>No applications yet.</div> : apps.map((a) => (
+            <div key={a.id} style={{ padding:"10px 0", borderBottom:`1px solid ${C.border}` }}>
+              <div style={{ fontWeight:700 }}>{a.company} - {a.internshipTitle}</div>
+              <div style={{ fontSize:12, color:C.textMuted }}>Status: {a.status} | Resume: {a.resumeRound} | Technical: {a.technicalRound} | HR: {a.hrRound}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === "resume" && (
+        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:16, padding:18 }}>
+          {apps.length === 0 ? <div style={{ color:C.textMuted }}>No applications available for resume evaluation.</div> : apps.map((a) => (
+            <div key={a.id} style={{ padding:"12px 0", borderBottom:`1px solid ${C.border}` }}>
+              <div style={{ fontWeight:700, marginBottom:4 }}>{a.company} - {a.internshipTitle}</div>
+              <div style={{ fontSize:12, color:C.textMuted, marginBottom:8 }}>Resume Round: {a.resumeRound} | Status: {a.status}</div>
+              <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                {a.resumeUrl && (
+                  <a href={`http://localhost:8080${a.resumeUrl}`} target="_blank" rel="noreferrer" style={{ padding:"7px 12px", borderRadius:8, background:C.surface, color:C.text, border:`1px solid ${C.border}`, fontSize:12 }}>
+                    View Resume
+                  </a>
+                )}
+                <button onClick={() => evaluateResume(a.id, "ALLOWED")} style={{ padding:"7px 12px", borderRadius:8, background:C.green, color:"#fff", fontSize:12, fontWeight:700 }}>
+                  Allow Next Round
+                </button>
+                <button onClick={() => evaluateResume(a.id, "REJECTED")} style={{ padding:"7px 12px", borderRadius:8, background:C.red, color:"#fff", fontSize:12, fontWeight:700 }}>
+                  Reject Resume
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === "rounds" && roleType === "admin" && (
+        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:16, padding:20 }}>
+          <select value={selectedApp?.id || ""} onChange={(e) => { const next = apps.find((a) => String(a.id) === e.target.value); setSelectedApp(next || null); if (next) setRounds({ resumeRound: next.resumeRound, technicalRound: next.technicalRound, hrRound: next.hrRound }); }} style={{ width:"100%", padding:"10px", borderRadius:8, marginBottom:12, background:C.surface, color:C.text, border:`1px solid ${C.border}` }}>
+            <option value="">Select application</option>
+            {apps.map((a) => <option key={a.id} value={a.id}>{a.company} - {a.internshipTitle}</option>)}
+          </select>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
+            {["resumeRound", "technicalRound", "hrRound"].map((k) => (
+              <select key={k} value={rounds[k]} onChange={(e) => setRounds({ ...rounds, [k]: e.target.value })} style={{ padding:"10px", borderRadius:8, background:C.surface, color:C.text, border:`1px solid ${C.border}` }}>
+                {["PENDING","ALLOWED","REJECTED"].map((v) => <option key={v} value={v}>{k} - {v}</option>)}
+              </select>
+            ))}
+          </div>
+          <button onClick={updateRounds} style={{ marginTop:12, padding:"10px 16px", borderRadius:8, background:C.purple, color:"#fff", fontWeight:700 }}>Update Rounds</button>
+        </div>
+      )}
+
+      {tab === "evaluations" && roleType === "admin" && (
+        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:16, padding:20 }}>
+          <input value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)} placeholder="Task title" style={{ width:"100%", padding:"10px", borderRadius:8, marginBottom:10, background:C.surface, color:C.text, border:`1px solid ${C.border}` }} />
+          <button onClick={assignTask} style={{ padding:"10px 16px", borderRadius:8, background:C.green, color:"#fff", fontWeight:700 }}>Assign Task</button>
+        </div>
+      )}
+
+      {tab === "employers" && roleType === "admin" && (
+        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:16, padding:20 }}>
+          <div style={{ fontWeight:700, marginBottom:12 }}>Create Employer Account (Admin Only)</div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+            <input value={employerForm.fullName} onChange={(e) => setEmployerForm({ ...employerForm, fullName: e.target.value })} placeholder="Full Name" style={{ width:"100%", padding:"10px", borderRadius:8, background:C.surface, color:C.text, border:`1px solid ${C.border}` }} />
+            <input value={employerForm.phone} onChange={(e) => setEmployerForm({ ...employerForm, phone: e.target.value })} placeholder="Phone" style={{ width:"100%", padding:"10px", borderRadius:8, background:C.surface, color:C.text, border:`1px solid ${C.border}` }} />
+            <input value={employerForm.email} onChange={(e) => setEmployerForm({ ...employerForm, email: e.target.value })} placeholder="Email" style={{ width:"100%", padding:"10px", borderRadius:8, background:C.surface, color:C.text, border:`1px solid ${C.border}` }} />
+            <input type="password" value={employerForm.password} onChange={(e) => setEmployerForm({ ...employerForm, password: e.target.value })} placeholder="Temporary Password" style={{ width:"100%", padding:"10px", borderRadius:8, background:C.surface, color:C.text, border:`1px solid ${C.border}` }} />
+            <input value={employerForm.location} onChange={(e) => setEmployerForm({ ...employerForm, location: e.target.value })} placeholder="Location" style={{ width:"100%", padding:"10px", borderRadius:8, background:C.surface, color:C.text, border:`1px solid ${C.border}` }} />
+          </div>
+          <button disabled={creatingEmployer} onClick={createEmployer} style={{ marginTop:12, padding:"10px 16px", borderRadius:8, background:C.purple, color:"#fff", fontWeight:700 }}>
+            {creatingEmployer ? "Creating..." : "Create Employer"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProfilePage({ onToast }) {
+  const [profile, setProfile] = useState(null);
+  const [apps, setApps] = useState([]);
+  const [selected, setSelected] = useState("");
+  const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const load = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const [p, a] = await Promise.all([API.get("/profile/me"), API.get("/applications/me")]);
+      setProfile(p.data);
+      setApps(a.data || []);
+      if ((a.data || []).length > 0) {
+        setSelected((prev) => prev || String(a.data[0].id));
+      }
+    } catch (err) {
+      const status = err?.response?.status;
+      if (status === 401 || status === 403) {
+        setError("Please log in again to view your profile.");
+      } else {
+        setError("Could not load profile details right now. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const uploadResume = async () => {
+    if (!file || !selected) {
+      onToast("Select an application and a file first", C.yellow);
+      return;
+    }
+    const fd = new FormData();
+    fd.append("file", file);
+    try {
+      await API.post(`/applications/${selected}/resume`, fd, { headers: { "Content-Type": "multipart/form-data" } });
+      onToast("Resume uploaded successfully");
+      await load();
+    } catch (err) {
+      const message = err?.response?.data?.message || "Resume upload failed";
+      onToast(message, C.red);
+    }
+  };
+
+  if (loading) return <div style={{ maxWidth:900, margin:"0 auto", padding:"100px 48px 60px", color:C.textMuted }}>Loading profile...</div>;
+
+  if (error) {
+    return (
+      <div style={{ maxWidth:900, margin:"0 auto", padding:"100px 48px 60px" }}>
+        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:16, padding:20 }}>
+          <div style={{ color:C.red, marginBottom:12 }}>{error}</div>
+          <button onClick={load} style={{ padding:"10px 16px", borderRadius:8, background:C.purple, color:"#fff", fontWeight:700 }}>
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return <div style={{ maxWidth:900, margin:"0 auto", padding:"100px 48px 60px", color:C.textMuted }}>No profile data found.</div>;
+  }
+
+  return (
+    <div style={{ maxWidth:900, margin:"0 auto", padding:"100px 48px 60px" }}>
+      <h1 style={{ fontFamily:"'Manrope',sans-serif", fontSize:36, fontWeight:800, marginBottom:16 }}>My Profile</h1>
+      <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:16, padding:20, marginBottom:20 }}>
+        <div style={{ marginBottom:6 }}>Name: {profile.fullName}</div>
+        <div style={{ marginBottom:6 }}>Email: {profile.email}</div>
+        <div style={{ marginBottom:6 }}>Phone: {profile.phone || "-"}</div>
+        <div style={{ marginBottom:6 }}>Internships Applied: {profile.internshipsCount}</div>
+        <div>Current Resume: {profile.resumeUrl ? <a href={`http://localhost:8080${profile.resumeUrl}`} target="_blank" rel="noreferrer" style={{ color:C.purple }}>View CV</a> : "Not uploaded"}</div>
+      </div>
+      <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:16, padding:20 }}>
+        <div style={{ marginBottom:10, fontWeight:700 }}>Upload CV / Resume</div>
+        <select value={selected} onChange={(e) => setSelected(e.target.value)} style={{ width:"100%", padding:"10px", borderRadius:8, marginBottom:10, background:C.surface, color:C.text, border:`1px solid ${C.border}` }}>
+          <option value="">Select application</option>
+          {apps.map((a) => <option key={a.id} value={a.id}>{a.company} - {a.internshipTitle}</option>)}
+        </select>
+        <input type="file" accept=".pdf,.doc,.docx" onChange={(e) => setFile(e.target.files?.[0] || null)} style={{ marginBottom:10 }} />
+        <button onClick={uploadResume} style={{ padding:"10px 16px", borderRadius:8, background:C.purple, color:"#fff", fontWeight:700 }}>Upload</button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── SETTINGS PAGE ───────────────────────────────────────────────────────── */
+function SettingsPage({ onToast, setPage, setRole, isDark, setIsDark, user }) {
+  const [tab, setTab] = useState("general");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  
+  const C = getColors(isDark);
+
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      onToast("❌ All fields are required", C.red);
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      onToast("❌ New passwords do not match", C.red);
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      onToast("❌ Password must be at least 8 characters", C.red);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await API.post("/auth/change-password", {
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      });
+      onToast("✓ Password changed successfully", C.green);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      onToast(`❌ ${error?.response?.data?.message || "Failed to change password"}`, C.red);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendLoginNotification = async () => {
+    setLoading(true);
+    try {
+      await API.post("/auth/send-login-notification");
+      onToast("✓ Login notification sent to your email", C.green);
+    } catch (error) {
+      onToast(`❌ ${error?.response?.data?.message || "Failed to send notification"}`, C.red);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setLoading(true);
+    try {
+      await API.delete("/auth/delete-account");
+      onToast("✓ Account deleted successfully", C.green);
+      setTimeout(() => {
+        localStorage.removeItem("easyintern_token");
+        localStorage.removeItem("easyintern_user");
+        setRole(null);
+        setPage("home");
+      }, 1000);
+    } catch (error) {
+      onToast(`❌ ${error?.response?.data?.message || "Failed to delete account"}`, C.red);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: "100px 48px 60px" }}>
+      <div style={{ marginBottom: 48 }}>
+        <h1 style={{ fontFamily: "'Manrope',sans-serif", fontSize: 42, fontWeight: 800, marginBottom: 8 }}>Settings & Account</h1>
+        <p style={{ color: C.textMuted, fontSize: 16 }}>Manage your account security and preferences</p>
       </div>
 
       {/* Tabs */}
-      <div style={{ display:"flex", gap:6, marginBottom:24 }}>
-        {["interns","evaluations"].map(t=>(
-          <button key={t} onClick={()=>setTab(t)} style={{
-            padding:"9px 20px", borderRadius:99, fontSize:13, fontWeight:500, textTransform:"capitalize",
-            background: tab===t ? C.purpleDim : "transparent",
-            color:      tab===t ? C.purpleLight : C.textMuted,
-            border:     tab===t ? `1px solid ${C.purple}44` : `1px solid ${C.border}`,
-            transition:"all 0.2s",
-          }}>{t}</button>
+      <div style={{ display: "flex", gap: 16, marginBottom: 32, borderBottom: `1px solid ${C.border}`, paddingBottom: 16 }}>
+        {[
+          { id: "general", label: "⚙️ General" },
+          { id: "security", label: "🔐 Security" },
+          { id: "notifications", label: "📧 Notifications" },
+          { id: "danger", label: "⚠️ Danger Zone" },
+        ].map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            style={{
+              padding: "10px 16px",
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: tab === t.id ? 700 : 500,
+              background: tab === t.id ? C.purple : "transparent",
+              color: tab === t.id ? "#fff" : C.textMuted,
+              border: "none",
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
+          >
+            {t.label}
+          </button>
         ))}
       </div>
 
-      {tab==="interns" && (
-        <div className="fade-in" style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:20, overflow:"hidden" }}>
-          <table style={{ width:"100%", borderCollapse:"collapse" }}>
-            <thead>
-              <tr style={{ background:C.surface }}>
-                {["Intern","Role","Mentor","Progress","Status","Action"].map(h=>(
-                  <th key={h} style={{ padding:"14px 20px", textAlign:"left", fontSize:11, fontWeight:700, color:C.textMuted, textTransform:"uppercase", letterSpacing:"0.08em" }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {ADMIN_INTERNS.map((intern,i)=>(
-                <tr key={intern.id} style={{ borderTop:`1px solid ${C.border}`, transition:"background 0.15s" }}
-                  onMouseEnter={e=>e.currentTarget.style.background=C.cardHover}
-                  onMouseLeave={e=>e.currentTarget.style.background="transparent"}
-                >
-                  <td style={{ padding:"18px 20px" }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                      <div style={{ width:36, height:36, borderRadius:9, background:C.purpleDim, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:700, fontSize:13, color:C.purple, fontFamily:"'Syne',sans-serif" }}>{intern.avatar}</div>
-                      <div style={{ fontWeight:600, fontSize:14 }}>{intern.name}</div>
-                    </div>
-                  </td>
-                  <td style={{ padding:"18px 20px", fontSize:13, color:C.textMuted }}>{intern.role}</td>
-                  <td style={{ padding:"18px 20px", fontSize:13, color:C.textMuted }}>{intern.mentor}</td>
-                  <td style={{ padding:"18px 20px", minWidth:140 }}>
-                    <ProgressBar value={intern.progress} color={intern.progress>70?C.green:intern.progress>40?C.yellow:C.red} thin />
-                    <div style={{ fontSize:11, color:C.textMuted, marginTop:4 }}>{intern.progress}%</div>
-                  </td>
-                  <td style={{ padding:"18px 20px" }}>
-                    <Badge color={intern.status==="Completed"?C.green:C.blue}>{intern.status}</Badge>
-                  </td>
-                  <td style={{ padding:"18px 20px" }}>
-                    <button style={{ padding:"7px 14px", borderRadius:8, fontSize:12, fontWeight:600, background:C.purpleDim, color:C.purple, border:`1px solid ${C.purple}44` }}>Evaluate</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* General Tab */}
+      {tab === "general" && (
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 28 }}>
+          <h2 style={{ marginBottom: 20, fontWeight: 700 }}>Account Information</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16 }}>
+            <div>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: C.textMuted, marginBottom: 6 }}>Full Name</label>
+              <input type="text" value={user?.fullName || ""} disabled style={{ width: "100%", padding: "10px", borderRadius: 8, background: C.surface, color: C.text, border: `1px solid ${C.border}` }} />
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: C.textMuted, marginBottom: 6 }}>Email</label>
+              <input type="email" value={user?.email || ""} disabled style={{ width: "100%", padding: "10px", borderRadius: 8, background: C.surface, color: C.text, border: `1px solid ${C.border}` }} />
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: C.textMuted, marginBottom: 6 }}>Role</label>
+              <input type="text" value={(user?.role || "student").toUpperCase()} disabled style={{ width: "100%", padding: "10px", borderRadius: 8, background: C.surface, color: C.text, border: `1px solid ${C.border}` }} />
+            </div>
+            <div>
+              <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer", padding: "12px 0" }}>
+                <input type="checkbox" checked={!isDark} onChange={() => setIsDark(!isDark)} style={{ width: 18, height: 18, cursor: "pointer" }} />
+                <span style={{ fontWeight: 600 }}>Light Mode {isDark ? "(Off)" : "(On)"}</span>
+              </label>
+            </div>
+          </div>
         </div>
       )}
 
-      {tab==="evaluations" && (
-        <div className="fade-in" style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))", gap:20 }}>
-          {ADMIN_INTERNS.filter(i=>i.status==="Active").map(intern=>(
-            <div key={intern.id} style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:16, padding:24 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
-                <div style={{ fontWeight:700 }}>{intern.name}</div>
-                <Badge color={C.yellow}>Pending</Badge>
-              </div>
-              <div style={{ fontSize:13, color:C.textMuted, marginBottom:16 }}>{intern.role} · {intern.company}</div>
-              <div style={{ marginBottom:18 }}>
-                <div style={{ fontSize:12, color:C.textMuted, marginBottom:6 }}>Tasks: {intern.done}/{intern.tasks} completed</div>
-                <ProgressBar value={(intern.done/intern.tasks)*100} color={C.green} />
-              </div>
-              <textarea placeholder="Write your evaluation feedback here..." style={{ width:"100%", minHeight:90, padding:"12px 14px", borderRadius:10, background:C.surface, border:`1px solid ${C.border}`, color:C.text, fontSize:13, resize:"vertical" }} />
-              <button style={{ width:"100%", marginTop:12, padding:"11px", borderRadius:10, fontSize:14, fontWeight:600, background:C.green, color:"#fff" }}>Submit Evaluation</button>
+      {/* Security Tab */}
+      {tab === "security" && (
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 28 }}>
+          <h2 style={{ marginBottom: 20, fontWeight: 700 }}>Change Password</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16, maxWidth: 400 }}>
+            <div>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: C.textMuted, marginBottom: 6 }}>Current Password</label>
+              <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Enter current password" style={{ width: "100%", padding: "10px", borderRadius: 8, background: C.surface, color: C.text, border: `1px solid ${C.border}` }} />
             </div>
-          ))}
+            <div>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: C.textMuted, marginBottom: 6 }}>New Password</label>
+              <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password" style={{ width: "100%", padding: "10px", borderRadius: 8, background: C.surface, color: C.text, border: `1px solid ${C.border}` }} />
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: C.textMuted, marginBottom: 6 }}>Confirm New Password</label>
+              <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm new password" style={{ width: "100%", padding: "10px", borderRadius: 8, background: C.surface, color: C.text, border: `1px solid ${C.border}` }} />
+            </div>
+            <button onClick={handleChangePassword} disabled={loading} style={{ padding: "12px", borderRadius: 8, background: C.purple, color: "#fff", fontWeight: 600, border: "none", cursor: "pointer", marginTop: 8 }}>
+              {loading ? "Updating..." : "Change Password"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Notifications Tab */}
+      {tab === "notifications" && (
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 28 }}>
+          <h2 style={{ marginBottom: 20, fontWeight: 700 }}>Email Notifications</h2>
+          <p style={{ color: C.textMuted, marginBottom: 20 }}>Receive a confirmation email for every login to your account</p>
+          <button onClick={handleSendLoginNotification} disabled={loading} style={{ padding: "12px 28px", borderRadius: 8, background: C.purple, color: "#fff", fontWeight: 600, border: "none", cursor: "pointer" }}>
+            {loading ? "Sending..." : "Send Test Email"}
+          </button>
+        </div>
+      )}
+
+      {/* Danger Zone Tab */}
+      {tab === "danger" && (
+        <div style={{ background: C.card, border: `1px solid ${C.red}44`, borderRadius: 16, padding: 28 }}>
+          <h2 style={{ marginBottom: 20, fontWeight: 700, color: C.red }}>Danger Zone</h2>
+          <p style={{ color: C.textMuted, marginBottom: 20 }}>Permanently delete your account and all associated data. This action cannot be undone.</p>
+          {!deleteConfirm ? (
+            <button onClick={() => setDeleteConfirm(true)} style={{ padding: "12px 28px", borderRadius: 8, background: C.red, color: "#fff", fontWeight: 600, border: "none", cursor: "pointer" }}>
+              Delete Account
+            </button>
+          ) : (
+            <div style={{ background: C.surface, border: `1px solid ${C.red}`, borderRadius: 8, padding: 16 }}>
+              <p style={{ color: C.text, marginBottom: 16, fontWeight: 600 }}>Are you sure? This cannot be undone.</p>
+              <div style={{ display: "flex", gap: 12 }}>
+                <button onClick={handleDeleteAccount} disabled={loading} style={{ padding: "10px 20px", borderRadius: 8, background: C.red, color: "#fff", fontWeight: 600, border: "none", cursor: "pointer" }}>
+                  {loading ? "Deleting..." : "Yes, Delete Everything"}
+                </button>
+                <button onClick={() => setDeleteConfirm(false)} style={{ padding: "10px 20px", borderRadius: 8, background: C.border, color: C.text, fontWeight: 600, border: "none", cursor: "pointer" }}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -1075,46 +1498,95 @@ export default function App() {
   const [role,    setRole]    = useState(null);
   const [authMode,setAuthMode]= useState("signup");
   const [toast,   setToast]   = useState(null);
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
-  
+  const [isDark,  setIsDark]  = useState(() => {
+    const saved = localStorage.getItem("easyintern_theme");
+    return saved ? JSON.parse(saved) : true;
+  });
+  const [user, setUser] = useState(null);
+
+  const C = getColors(isDark);
+
   const showToast = (msg, color = C.green) => {
     setToast({ msg, color });
     setTimeout(() => setToast(null), 3500);
   };
-    const [internships, setInternships] = useState([]);
-  const [user, setUser] = useState(null);
 
-  // ✅ STEP 3 (put here)
   useEffect(() => {
-    fetchInternships();
+    const savedToken = localStorage.getItem("easyintern_token");
+    const savedUser = localStorage.getItem("easyintern_user");
+    if (savedToken && savedUser) {
+      const parsed = JSON.parse(savedUser);
+      setRole(parsed.role);
+      setUser(parsed);
+    }
   }, []);
 
-  const fetchInternships = async () => {
-    const res = await fetch(`${API_BASE_URL}/internships`);
-    const data = await res.json();
-    setInternships(data);
-  };
+  useEffect(() => {
+    localStorage.setItem("easyintern_theme", JSON.stringify(isDark));
+  }, [isDark]);
+
   const handleLogin = (userData) => {
-    setRole(userData.role);
-    setUser(userData);
-    if (userData.role === "student")       setPage("student");
-    else if (userData.role === "employer") setPage("employer");
-    else                                    setPage("employer");   // admin uses same portal
-    showToast(`Welcome! Signed in as ${userData.role} ✓`);
+    const normalizedRole = (userData.role || "student").toLowerCase();
+    const normalized = { ...userData, role: normalizedRole };
+    setRole(normalizedRole);
+    setUser(normalized);
+    if (userData.token) {
+      localStorage.setItem("easyintern_token", userData.token);
+    }
+    localStorage.setItem("easyintern_user", JSON.stringify(normalized));
+
+    if (normalizedRole === "student") {
+      setPage("student");
+    } else if (normalizedRole === "employer") {
+      setPage("employer");
+    } else {
+      setPage("admin");
+    }
+
+    showToast(`Welcome! Signed in as ${normalizedRole} ✓`);
   };
 
-  const handleApply = (item) => {
-    if(!role){ setAuthMode("signup"); setPage("login"); return; }
-    showToast(`Applied to ${item.title} at ${item.company}! 🎉`);
-    if(role==="student") setPage("student");
+  const handleApply = async (item) => {
+    if (!role) {
+      setAuthMode("signup");
+      setPage("login");
+      return;
+    }
+    if (role !== "student") {
+      showToast("Only students can apply for internships", C.yellow);
+      return;
+    }
+
+    const internshipId = Number(item?.id);
+    if (!Number.isFinite(internshipId)) {
+      showToast("Invalid internship selected. Please refresh and try again.", C.red);
+      return;
+    }
+
+    try {
+      await API.post("/applications/apply", { internshipId });
+      showToast(`Applied to ${item.title} at ${item.company}! 🎉`);
+      setPage("student");
+    } catch (error) {
+      const status = error?.response?.status;
+      const backendMessage = error?.response?.data?.message || error?.response?.data?.error;
+      let message = backendMessage;
+
+      if (!message && status === 400) message = "You may have already applied to this internship.";
+      if (!message && (status === 401 || status === 403)) message = "Your session expired. Please log in again.";
+      if (!message && status === 404) message = "Selected internship was not found.";
+      if (!message) message = "Could not apply right now. Please try again.";
+
+      showToast(message, C.red);
+    }
   };
 
   const goLogin = (p) => { setAuthMode(p); setPage("login"); };
 
   return (
     <>
-      <GlobalStyles />
-      <div style={{ fontFamily:"'DM Sans',sans-serif", background:C.bg, color:C.text, minHeight:"100vh" }}>
+      <GlobalStyles isDark={isDark} />
+      <div style={{ fontFamily:"'Manrope',sans-serif", background:C.bg, color:C.text, minHeight:"100vh" }}>
         {/* Toast */}
         {toast && (
           <div style={{ position:"fixed", bottom:28, right:28, background:toast.color, color:"#fff", padding:"14px 24px", borderRadius:14, fontWeight:600, zIndex:999, boxShadow:"0 16px 48px rgba(0,0,0,0.5)", animation:"fadeUp 0.3s ease", maxWidth:360 }}>
@@ -1122,16 +1594,19 @@ export default function App() {
           </div>
         )}
 
-        <Navbar page={page} setPage={setPage} role={role} setRole={setRole} setPage2={setPage} />
+        <Navbar page={page} setPage={setPage} role={role} setRole={setRole} setPage2={setPage} isDark={isDark} setIsDark={setIsDark} />
 
         {page==="home"       && <HomePage    setPage={(p)=>{ if(p==="signup"){setAuthMode("signup");setPage("login");}else setPage(p); }} />}
         {page==="internships"&& <InternshipsPage onApply={handleApply} role={role} />}
         {page==="login"      && <AuthPage mode={authMode} setMode={setAuthMode} onLogin={handleLogin} />}
         {page==="signup"     && <AuthPage mode="signup"   setMode={setAuthMode} onLogin={handleLogin} />}
-        {page==="student"    && <StudentDashboard />}
-        {page==="employer"   && <EmployerPortal />}
-        {page==="admin"      && <EmployerPortal />}
+        {page==="student"    && <StudentDashboard onToast={showToast} />}
+        {page==="employer"   && <EmployerPortal roleType="employer" onToast={showToast} />}
+        {page==="admin"      && <EmployerPortal roleType="admin" onToast={showToast} />}
+        {page==="profile"    && <ProfilePage onToast={showToast} />}
+        {page==="settings"   && <SettingsPage onToast={showToast} setPage={setPage} setRole={setRole} isDark={isDark} setIsDark={setIsDark} user={user} />}
       </div>
     </>
   );
 }
+
