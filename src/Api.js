@@ -1,7 +1,21 @@
 import axios from "axios";
 
+const DEFAULT_RENDER_API_BASE_URL = "https://sdp-37-backend-1.onrender.com/api/v1";
+
+const resolveDefaultApiBaseUrl = () => {
+  if (typeof window === "undefined") return "/api/v1";
+
+  const host = window.location.hostname;
+  const isLocalHost =
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host === "0.0.0.0";
+
+  return isLocalHost ? "/api/v1" : DEFAULT_RENDER_API_BASE_URL;
+};
+
 const normalizeApiBaseUrl = (rawUrl) => {
-  if (!rawUrl) return "/api/v1";
+  if (!rawUrl) return resolveDefaultApiBaseUrl();
 
   const trimmed = String(rawUrl).replace(/\/+$/, "");
   if (trimmed.endsWith("/api")) {
