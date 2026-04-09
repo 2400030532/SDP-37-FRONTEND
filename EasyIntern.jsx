@@ -338,23 +338,6 @@ function HomePage({ setPage }) {
         </div>
       </section>
 
-      {/* STATS BAR */}
-      <section style={{ borderTop:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}`, padding:"36px 64px", background:C.surface }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:40 }}>
-          {[
-            { n:"500+", l:"Active Internships" },
-            { n:"120+", l:"Partner Companies" },
-            { n:"3.2K+", l:"Students Placed" },
-            { n:"₹22K", l:"Average Stipend" },
-          ].map(({ n, l }) => (
-            <div key={l} style={{ textAlign:"center" }}>
-              <div style={{ fontFamily:"'Syne',sans-serif", fontSize:36, fontWeight:800, color:C.text, letterSpacing:"-1px" }}>{n}</div>
-              <div style={{ fontSize:13, color:C.textMuted, marginTop:4 }}>{l}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* FEATURES */}
       <section style={{ padding:"100px 64px", maxWidth:1200, margin:"0 auto" }}>
         <div style={{ textAlign:"center", marginBottom:64 }}>

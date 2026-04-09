@@ -255,7 +255,7 @@ function Navbar({ page, setPage, role, setRole, setPage2, isDark, setIsDark }) {
           { id:"home",        label:"Home" },
           { id:"internships", label:"Browse" },
           ...(role === "student"  ? [{ id:"student",    label:"Dashboard" }, { id:"profile", label:"Profile" }] : []),
-          ...(role === "employer" ? [{ id:"employer",   label:"Portal" }] : []),
+          ...(role === "employer" ? [{ id:"employer",   label:"Portal" }, { id:"profile", label:"Profile" }] : []),
           ...(role === "admin"    ? [{ id:"admin",      label:"Admin" }, { id:"profile", label:"Profile" }] : []),
         ].map(({ id, label }) => (
           <button key={id} onClick={() => setPage(id)} style={{
@@ -301,8 +301,8 @@ function HomePage({ setPage }) {
     <div style={{ paddingTop:0, minHeight:"100vh" }}>
       {/* HERO */}
       <section style={{
-        minHeight:"100vh", display:"flex", alignItems:"center",
-        padding:"100px 64px 60px",
+        minHeight:"auto", display:"flex", alignItems:"center",
+        padding:"100px 64px 36px",
         position:"relative", overflow:"hidden",
       }}>
         {/* Background blobs */}
@@ -359,32 +359,54 @@ function HomePage({ setPage }) {
             </div>
           </div>
 
-          {/* RIGHT — dashboard card */}
-          <div className="slide-r d2" style={{ animation:"float 5s ease-in-out infinite" }}>
-            <DashboardPreviewCard />
-          </div>
-        </div>
-      </section>
-
-      {/* STATS BAR */}
-      <section style={{ borderTop:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}`, padding:"36px 64px", background:C.surface }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:40 }}>
-          {[
-            { n:"500+", l:"Active Internships" },
-            { n:"120+", l:"Partner Companies" },
-            { n:"3.2K+", l:"Students Placed" },
-            { n:"₹22K", l:"Average Stipend" },
-          ].map(({ n, l }) => (
-            <div key={l} style={{ textAlign:"center" }}>
-              <div style={{ fontFamily:"'Manrope',sans-serif", fontSize:36, fontWeight:800, color:C.text, letterSpacing:"-1px" }}>{n}</div>
-              <div style={{ fontSize:13, color:C.textMuted, marginTop:4 }}>{l}</div>
+          <div style={{
+            background:C.card,
+            border:`1px solid ${C.border}`,
+            borderRadius:20,
+            padding:30,
+            maxWidth:520,
+            marginLeft:"auto",
+            width:"100%"
+          }}>
+            <div style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"6px 12px", borderRadius:99, background:"rgba(255,255,255,0.03)", border:`1px solid ${C.border}`, fontSize:11, letterSpacing:"0.08em", textTransform:"uppercase", color:C.textMuted, marginBottom:14 }}>
+              Project Details
             </div>
-          ))}
+            <div style={{ fontFamily:"'Manrope',sans-serif", fontWeight:800, fontSize:34, lineHeight:1.1, letterSpacing:"-1px", marginBottom:20, color:C.purpleLight }}>
+              Project Information
+            </div>
+            <div style={{ display:"flex", flexDirection:"column", gap:14, color:C.textSoft, lineHeight:1.6, fontSize:16 }}>
+              <div>
+                <span style={{ color:C.textMuted, textTransform:"uppercase", letterSpacing:"0.06em", fontSize:11, display:"block", marginBottom:4 }}>Developers</span>
+                LANKA NAGAMOHAN id:2400030532, VEERLA LATEESH id:2400030541
+              </div>
+              <div>
+                <span style={{ color:C.textMuted, textTransform:"uppercase", letterSpacing:"0.06em", fontSize:11, display:"block", marginBottom:4 }}>Section</span>
+                05
+              </div>
+              <div>
+                <span style={{ color:C.textMuted, textTransform:"uppercase", letterSpacing:"0.06em", fontSize:11, display:"block", marginBottom:4 }}>Project Number</span>
+                37
+              </div>
+              <div>
+                <span style={{ color:C.textMuted, textTransform:"uppercase", letterSpacing:"0.06em", fontSize:11, display:"block", marginBottom:4 }}>Technologies Used</span>
+                React, Spring Boot, GitHub
+              </div>
+              <div>
+                <span style={{ color:C.textMuted, textTransform:"uppercase", letterSpacing:"0.06em", fontSize:11, display:"block", marginBottom:4 }}>Frontend Link</span>
+                <a href="https://github.com/2400030532/SDP-37-FRONTEND.git" target="_blank" rel="noreferrer" style={{ color:C.purpleLight, wordBreak:"break-all" }}>https://github.com/2400030532/SDP-37-FRONTEND.git</a>
+              </div>
+              <div>
+                <span style={{ color:C.textMuted, textTransform:"uppercase", letterSpacing:"0.06em", fontSize:11, display:"block", marginBottom:4 }}>Backend Link</span>
+                <a href="https://github.com/2400030532/SDP-37-BACKEND.git" target="_blank" rel="noreferrer" style={{ color:C.purpleLight, wordBreak:"break-all" }}>https://github.com/2400030532/SDP-37-BACKEND.git</a>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 
       {/* FEATURES */}
-      <section style={{ padding:"100px 64px", maxWidth:1200, margin:"0 auto" }}>
+      <section style={{ padding:"72px 64px 100px", maxWidth:1200, margin:"24px auto 0" }}>
         <div style={{ textAlign:"center", marginBottom:64 }}>
           <p style={{ fontSize:12, fontWeight:700, letterSpacing:"0.15em", color:C.purple, textTransform:"uppercase", marginBottom:12 }}>PLATFORM FEATURES</p>
           <h2 style={{ fontFamily:"'Manrope',sans-serif", fontSize:42, fontWeight:800, letterSpacing:"-1.5px" }}>Everything you need to<br/>land your dream internship</h2>
@@ -1015,6 +1037,10 @@ function EmployerPortal({ roleType = "employer", onToast }) {
   const [taskTitle, setTaskTitle] = useState("");
   const [creatingEmployer, setCreatingEmployer] = useState(false);
   const [employerForm, setEmployerForm] = useState({ fullName:"", phone:"", email:"", password:"", location:"" });
+  const [employers, setEmployers] = useState([]);
+  const [loadingEmployers, setLoadingEmployers] = useState(false);
+  const [savingEmployerId, setSavingEmployerId] = useState(null);
+  const [employerEdits, setEmployerEdits] = useState({});
 
   const tabs = roleType === "admin"
     ? ["interns", "resume", "rounds", "evaluations", "employers"]
@@ -1033,8 +1059,45 @@ function EmployerPortal({ roleType = "employer", onToast }) {
     }
   };
 
+  const loadEmployers = async () => {
+    if (roleType !== "admin") {
+      return;
+    }
+    setLoadingEmployers(true);
+    try {
+      const res = await API.get("/admin/users/employers");
+      const employerList = Array.isArray(res.data) ? res.data : [];
+      setEmployers(employerList);
+      setEmployerEdits((prev) => {
+        const next = { ...prev };
+        employerList.forEach((employer) => {
+          if (!next[employer.id]) {
+            next[employer.id] = {
+              fullName: employer.fullName || "",
+              phone: employer.phone || "",
+              email: employer.email || "",
+              location: employer.location || "",
+              password: "",
+            };
+          }
+        });
+        return next;
+      });
+    } catch {
+      setEmployers([]);
+    } finally {
+      setLoadingEmployers(false);
+    }
+  };
+
   useEffect(() => {
     loadApps();
+  }, [roleType]);
+
+  useEffect(() => {
+    if (roleType === "admin") {
+      loadEmployers();
+    }
   }, [roleType]);
 
   const evaluateResume = async (applicationId, decision) => {
@@ -1058,11 +1121,48 @@ function EmployerPortal({ roleType = "employer", onToast }) {
       await API.post("/admin/users/employer", employerForm);
       setEmployerForm({ fullName:"", phone:"", email:"", password:"", location:"" });
       onToast("Employer account created by admin");
+      await loadEmployers();
     } catch (err) {
       const message = err?.response?.data?.message || "Could not create employer account";
       onToast(message, C.red);
     } finally {
       setCreatingEmployer(false);
+    }
+  };
+
+  const updateEmployer = async (employerId) => {
+    const edit = employerEdits[employerId];
+    if (!edit) return;
+
+    setSavingEmployerId(employerId);
+    try {
+      await API.put(`/admin/users/employers/${employerId}`, edit);
+      onToast("Employer credentials updated");
+      await loadEmployers();
+    } catch (err) {
+      const message = err?.response?.data?.message || "Could not update employer";
+      onToast(message, C.red);
+    } finally {
+      setSavingEmployerId(null);
+    }
+  };
+
+  const deleteEmployer = async (employerId) => {
+    const confirmed = window.confirm("Delete this employer account? This will remove the login and employer profile.");
+    if (!confirmed) {
+      return;
+    }
+
+    setSavingEmployerId(employerId);
+    try {
+      await API.delete(`/admin/users/employers/${employerId}`);
+      onToast("Employer deleted");
+      await loadEmployers();
+    } catch (err) {
+      const message = err?.response?.data?.message || "Could not delete employer";
+      onToast(message, C.red);
+    } finally {
+      setSavingEmployerId(null);
     }
   };
 
@@ -1183,7 +1283,8 @@ function EmployerPortal({ roleType = "employer", onToast }) {
       )}
 
       {tab === "employers" && roleType === "admin" && (
-        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:16, padding:20 }}>
+        <div style={{ display:"grid", gap:16 }}>
+          <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:16, padding:20 }}>
           <div style={{ fontWeight:700, marginBottom:12 }}>Create Employer Account (Admin Only)</div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
             <input value={employerForm.fullName} onChange={(e) => setEmployerForm({ ...employerForm, fullName: e.target.value })} placeholder="Full Name" style={{ width:"100%", padding:"10px", borderRadius:8, background:C.surface, color:C.text, border:`1px solid ${C.border}` }} />
@@ -1195,6 +1296,53 @@ function EmployerPortal({ roleType = "employer", onToast }) {
           <button disabled={creatingEmployer} onClick={createEmployer} style={{ marginTop:12, padding:"10px 16px", borderRadius:8, background:C.purple, color:"#fff", fontWeight:700 }}>
             {creatingEmployer ? "Creating..." : "Create Employer"}
           </button>
+        </div>
+          <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:16, padding:20 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, marginBottom:12, flexWrap:"wrap" }}>
+              <div style={{ fontWeight:700 }}>Created Employer Logins</div>
+              <button onClick={loadEmployers} style={{ padding:"8px 12px", borderRadius:8, background:C.surface, color:C.text, border:`1px solid ${C.border}` }}>
+                {loadingEmployers ? "Refreshing..." : "Refresh"}
+              </button>
+            </div>
+            {loadingEmployers && employers.length === 0 ? (
+              <div style={{ color:C.textMuted }}>Loading employer accounts...</div>
+            ) : employers.length === 0 ? (
+              <div style={{ color:C.textMuted }}>No employer accounts created yet.</div>
+            ) : (
+              <div style={{ display:"grid", gap:12 }}>
+                {employers.map((employer) => {
+                  const edit = employerEdits[employer.id] || { fullName:"", phone:"", email:"", location:"", password:"" };
+                  return (
+                    <div key={employer.id} style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:14, padding:16 }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginBottom:12 }}>
+                        <div>
+                          <div style={{ fontWeight:700 }}>{employer.fullName || "Employer"}</div>
+                          <div style={{ fontSize:12, color:C.textMuted }}>User ID: {employer.userId} · Created: {employer.createdAt || "-"}</div>
+                        </div>
+                        <Badge color={C.purple}>Employer Login</Badge>
+                      </div>
+                      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                        <input value={edit.fullName} onChange={(e) => setEmployerEdits({ ...employerEdits, [employer.id]: { ...edit, fullName: e.target.value } })} placeholder="Full Name" style={{ width:"100%", padding:"10px", borderRadius:8, background:C.card, color:C.text, border:`1px solid ${C.border}` }} />
+                        <input value={edit.phone} onChange={(e) => setEmployerEdits({ ...employerEdits, [employer.id]: { ...edit, phone: e.target.value } })} placeholder="Phone" style={{ width:"100%", padding:"10px", borderRadius:8, background:C.card, color:C.text, border:`1px solid ${C.border}` }} />
+                        <input value={edit.email} onChange={(e) => setEmployerEdits({ ...employerEdits, [employer.id]: { ...edit, email: e.target.value } })} placeholder="Email / Login Email" style={{ width:"100%", padding:"10px", borderRadius:8, background:C.card, color:C.text, border:`1px solid ${C.border}` }} />
+                        <input value={edit.location} onChange={(e) => setEmployerEdits({ ...employerEdits, [employer.id]: { ...edit, location: e.target.value } })} placeholder="Location" style={{ width:"100%", padding:"10px", borderRadius:8, background:C.card, color:C.text, border:`1px solid ${C.border}` }} />
+                        <input type="password" value={edit.password} onChange={(e) => setEmployerEdits({ ...employerEdits, [employer.id]: { ...edit, password: e.target.value } })} placeholder="New Temporary Password (optional)" style={{ width:"100%", padding:"10px", borderRadius:8, background:C.card, color:C.text, border:`1px solid ${C.border}` }} />
+                      </div>
+                      <div style={{ marginTop:12, display:"flex", gap:8, flexWrap:"wrap" }}>
+                        <button onClick={() => updateEmployer(employer.id)} disabled={savingEmployerId === employer.id} style={{ padding:"10px 16px", borderRadius:8, background:C.green, color:"#fff", fontWeight:700 }}>
+                          {savingEmployerId === employer.id ? "Saving..." : "Save Changes"}
+                        </button>
+                        <button onClick={() => deleteEmployer(employer.id)} disabled={savingEmployerId === employer.id} style={{ padding:"10px 16px", borderRadius:8, background:C.red, color:"#fff", fontWeight:700 }}>
+                          {savingEmployerId === employer.id ? "Deleting..." : "Delete Employer"}
+                        </button>
+                        <div style={{ fontSize:12, color:C.textMuted, alignSelf:"center" }}>Login email: {employer.email}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -1213,11 +1361,25 @@ function ProfilePage({ onToast }) {
     setLoading(true);
     setError("");
     try {
-      const [p, a] = await Promise.all([API.get("/profile/me"), API.get("/applications/me")]);
-      setProfile(p.data);
-      setApps(a.data || []);
-      if ((a.data || []).length > 0) {
-        setSelected((prev) => prev || String(a.data[0].id));
+      const profileResponse = await API.get("/profile/me");
+      const nextProfile = profileResponse.data;
+      setProfile(nextProfile);
+
+      if ((nextProfile?.role || "").toLowerCase() === "student") {
+        try {
+          const applicationsResponse = await API.get("/applications/me");
+          const applicationList = Array.isArray(applicationsResponse.data) ? applicationsResponse.data : [];
+          setApps(applicationList);
+          if (applicationList.length > 0) {
+            setSelected((prev) => prev || String(applicationList[0].id));
+          }
+        } catch {
+          // Keep profile usable even if the applications endpoint is temporarily unavailable.
+          setApps([]);
+        }
+      } else {
+        setApps([]);
+        setSelected("");
       }
     } catch (err) {
       const status = err?.response?.status;
@@ -1271,23 +1433,35 @@ function ProfilePage({ onToast }) {
 
   return (
     <div style={{ maxWidth:900, margin:"0 auto", padding:"100px 48px 60px" }}>
-      <h1 style={{ fontFamily:"'Manrope',sans-serif", fontSize:36, fontWeight:800, marginBottom:16 }}>My Profile</h1>
+      <h1 style={{ fontFamily:"'Manrope',sans-serif", fontSize:36, fontWeight:800, marginBottom:16 }}>
+        {(profile.role || "").toLowerCase() === "employer" ? "Employer Profile" : (profile.role || "user").toLowerCase() === "admin" ? "Admin Profile" : "My Profile"}
+      </h1>
       <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:16, padding:20, marginBottom:20 }}>
         <div style={{ marginBottom:6 }}>Name: {profile.fullName}</div>
         <div style={{ marginBottom:6 }}>Email: {profile.email}</div>
         <div style={{ marginBottom:6 }}>Phone: {profile.phone || "-"}</div>
-        <div style={{ marginBottom:6 }}>Internships Applied: {profile.internshipsCount}</div>
-        <div>Current Resume: {profile.resumeUrl ? <a href={`http://localhost:8080${profile.resumeUrl}`} target="_blank" rel="noreferrer" style={{ color:C.purple }}>View CV</a> : "Not uploaded"}</div>
+        <div style={{ marginBottom:6 }}>Location: {profile.location || "-"}</div>
+        <div style={{ marginBottom:6 }}>Role: {(profile.role || "-").toUpperCase()}</div>
+        {(profile.role || "").toLowerCase() === "student" ? (
+          <>
+            <div style={{ marginBottom:6 }}>Internships Applied: {profile.internshipsCount}</div>
+            <div>Current Resume: {profile.resumeUrl ? <a href={`http://localhost:8080${profile.resumeUrl}`} target="_blank" rel="noreferrer" style={{ color:C.purple }}>View CV</a> : "Not uploaded"}</div>
+          </>
+        ) : (
+          <div style={{ color:C.textMuted }}>Employer accounts do not use the resume upload flow.</div>
+        )}
       </div>
-      <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:16, padding:20 }}>
-        <div style={{ marginBottom:10, fontWeight:700 }}>Upload CV / Resume</div>
-        <select value={selected} onChange={(e) => setSelected(e.target.value)} style={{ width:"100%", padding:"10px", borderRadius:8, marginBottom:10, background:C.surface, color:C.text, border:`1px solid ${C.border}` }}>
-          <option value="">Select application</option>
-          {apps.map((a) => <option key={a.id} value={a.id}>{a.company} - {a.internshipTitle}</option>)}
-        </select>
-        <input type="file" accept=".pdf,.doc,.docx" onChange={(e) => setFile(e.target.files?.[0] || null)} style={{ marginBottom:10 }} />
-        <button onClick={uploadResume} style={{ padding:"10px 16px", borderRadius:8, background:C.purple, color:"#fff", fontWeight:700 }}>Upload</button>
-      </div>
+      {(profile.role || "").toLowerCase() === "student" && (
+        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:16, padding:20 }}>
+          <div style={{ marginBottom:10, fontWeight:700 }}>Upload CV / Resume</div>
+          <select value={selected} onChange={(e) => setSelected(e.target.value)} style={{ width:"100%", padding:"10px", borderRadius:8, marginBottom:10, background:C.surface, color:C.text, border:`1px solid ${C.border}` }}>
+            <option value="">Select application</option>
+            {apps.map((a) => <option key={a.id} value={a.id}>{a.company} - {a.internshipTitle}</option>)}
+          </select>
+          <input type="file" accept=".pdf,.doc,.docx" onChange={(e) => setFile(e.target.files?.[0] || null)} style={{ marginBottom:10 }} />
+          <button onClick={uploadResume} style={{ padding:"10px 16px", borderRadius:8, background:C.purple, color:"#fff", fontWeight:700 }}>Upload</button>
+        </div>
+      )}
     </div>
   );
 }
